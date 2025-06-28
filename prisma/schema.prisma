@@ -63,17 +63,18 @@ model transaction {
 }
 
 model user {
-  id               String    @id @db.VarChar(50)
-  email            String?   @unique(map: "User_email_key")
-  username         String    @db.VarChar(20)
-  password         String    @db.VarChar(90)
-  resetToken       String?   @db.VarChar(255)
+  id               String   @id @default(uuid()) @db.VarChar(50)
+  email            String?  @unique(map: "User_email_key")
+  username         String   @db.VarChar(20)
+  password         String   @db.VarChar(90)
+  resetToken       String?  @db.VarChar(255)
   resetTokenExpiry DateTime?
-  role             String    @db.VarChar(10)
-  createdAt        DateTime  @default(now())
+  role             String   @db.VarChar(10)
+  createdAt        DateTime @default(now())
   pesanan          pesanan[]
   warung           warung[]
 }
+
 
 model warung {
   id        Int      @id @default(autoincrement())
@@ -87,6 +88,6 @@ model warung {
   penjualId String
   menu      menu[]
   user      user     @relation(fields: [penjualId], references: [id], map: "Warung_penjualId_fkey")
-
-  @@index([penjualId], map: "Warung_penjualId_fkey")
 }
+
+

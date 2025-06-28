@@ -76,13 +76,14 @@ export const GET = async () => {
     const warungs = await prisma.warung.findMany({
       include: {
         menu: true,
-        penjual: {
-          select: { username: true },
+        user: { // relasi ke user (penjual)
+          select: {
+            username: true,
+          },
         },
       },
     });
 
-    // ✅ Response dalam format { status, message, code, data: [...] }
     return getResponse(0, "Berhasil mendapatkan data warung", 200, warungs);
   } catch (error: unknown) {
     console.error("Error saat GET warung:", error);

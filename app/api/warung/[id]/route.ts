@@ -1,22 +1,21 @@
+// app/api/warung/[id]/route.ts
 import { prisma } from "@/app/api/bridgePrisma";
 import { getResponse } from "@/app/api/bridgeResponse";
 import { NextRequest } from "next/server";
 
 export const GET = async (
   req: NextRequest,
-  {
-    params,
-  }: {
-    params: { id: string };
-  }
+  { params }: { params: { id: string } }
 ) => {
   try {
-    const param = params.id;
+    const id = Number(params.id);
 
-    const getWarungById = await prisma.warung.findFirst({
-      where: {
-        id: Number(param),
-      },
+    if (!params.id || isNaN(id)) {
+      return getResponse(1, "ID tidak valid", 400);
+    }
+
+    const warung = await prisma.warung.findUnique({
+      where: { id },
       include: {
         menu: true,
         penjual: {
@@ -25,19 +24,14 @@ export const GET = async (
       },
     });
 
-    if (!getWarungById) {
+    if (!warung) {
       return getResponse(1, "Warung tidak ditemukan", 404);
     }
 
-    return getResponse(
-      0,
-      `data ${getWarungById.nama} berhasil didapatkan`,
-      200,
-      getWarungById
-    );
-  } catch (error: unknown) {
-    console.error(error);
-    return getResponse(1, `${error}`, 500, []);
+    return getResponse(0, `Data ${warung.nama} berhasil didapatkan`, 200, warung);
+  } catch (error) {
+    console.error("GET Error:", error);
+    return getResponse(1, "Terjadi kesalahan server", 500);
   }
 };
 
@@ -51,6 +45,8 @@ export const PUT = async (
 ) => {
   try {
     const id = Number(params.id);
+    if (!id || isNaN(id)) return getResponse(1, "ID tidak valid", 400);
+
     const body = await req.json();
 
     const update = await prisma.warung.update({
@@ -61,7 +57,7 @@ export const PUT = async (
         jam_buka: body.jam_buka,
         jam_tutup: body.jam_tutup,
         no_telp: body.no_telp,
-        image: body.image, // diasumsikan image bisa diedit (jika tidak, hapus ini)
+        image: body.image,
       },
     });
 
@@ -72,24 +68,22 @@ export const PUT = async (
   }
 };
 
+// DELETE untuk hapus warung
 export const DELETE = async (
   req: NextRequest,
-  {
-    params,
-  }: {
-    params: { id: string };
-  }
+  { params }: { params: { id: string } }
 ) => {
+  const id = Number(params.id);
+
+  if (!params.id || isNaN(id)) {
+    return getResponse(1, "ID tidak valid", 400);
+  }
+
   try {
-    const id = Number(params.id);
-
-    await prisma.warung.delete({
-      where: { id },
-    });
-
+    await prisma.warung.delete({ where: { id } });
     return getResponse(0, "Berhasil menghapus warung", 200);
-  } catch (error: unknown) {
-    console.error("Error DELETE:", error);
+  } catch (error) {
+    console.error("DELETE Error:", error);
     return getResponse(1, "Gagal menghapus warung", 500);
   }
 };
