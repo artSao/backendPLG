@@ -1,8 +1,8 @@
-// app/api/warung/[id]/route.ts
 import { prisma } from "@/app/api/bridgePrisma";
 import { getResponse } from "@/app/api/bridgeResponse";
 import { NextRequest } from "next/server";
 
+// GET warung by ID
 export const GET = async (
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -18,7 +18,7 @@ export const GET = async (
       where: { id },
       include: {
         menu: true,
-        penjual: {
+        user: { // ✅ ganti dari 'penjual' menjadi 'user'
           select: { username: true },
         },
       },
@@ -35,13 +35,10 @@ export const GET = async (
   }
 };
 
+// PUT untuk update data warung
 export const PUT = async (
   req: NextRequest,
-  {
-    params,
-  }: {
-    params: { id: string };
-  }
+  { params }: { params: { id: string } }
 ) => {
   try {
     const id = Number(params.id);
@@ -68,7 +65,7 @@ export const PUT = async (
   }
 };
 
-// DELETE untuk hapus warung
+// DELETE untuk hapus data warung
 export const DELETE = async (
   req: NextRequest,
   { params }: { params: { id: string } }
