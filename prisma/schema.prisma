@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model detailpesanan {
+  id        Int     @id @default(autoincrement())
+  pesananId Int
+  menuId    Int
+  jumlah    Int
+  menu      menu    @relation(fields: [menuId], references: [id], map: "DetailPesanan_menuId_fkey")
+  pesanan   pesanan @relation(fields: [pesananId], references: [id], map: "DetailPesanan_pesananId_fkey")
+
+  @@index([menuId], map: "DetailPesanan_menuId_fkey")
+  @@index([pesananId], map: "DetailPesanan_pesananId_fkey")
+}
+
+model menu {
+  id            Int             @id @default(autoincrement())
+  nama_menu     String
+  harga         Int
+  gambar        String
+  tersedia      Boolean
+  createdAt     DateTime        @default(now())
+  warungId      Int
+  detailpesanan detailpesanan[]
+  warung        warung          @relation(fields: [warungId], references: [id], map: "Menu_warungId_fkey")
+
+  @@index([warungId], map: "Menu_warungId_fkey")
+}
+
+model pesanan {
+  id            Int             @id @default(autoincrement())
+  userId        String
+  waktu_ambil   DateTime
+  waktu_pesan   DateTime
+  total_harga   Int
+  status        String?
+  createdAt     DateTime        @default(now())
+  detailpesanan detailpesanan[]
+  user          user            @relation(fields: [userId], references: [id], map: "Pesanan_userId_fkey")
+  transaction   transaction?
+
+  @@index([userId], map: "Pesanan_userId_fkey")
+}
+
+model transaction {
+  id          String   @id
+  orderId     String   @unique(map: "Transaction_orderId_key")
+  amount      Int
+  status      String   @default("pending")
+  paymentType String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  snapToken   String?
+  midtransId  String?
+  pesananId   Int?     @unique(map: "Transaction_pesananId_key")
+  pesanan     pesanan? @relation(fields: [pesananId], references: [id], map: "Transaction_pesananId_fkey")
+}
+
+model user {
+  id               String    @id @db.VarChar(50)
+  email            String?   @unique(map: "User_email_key")
+  username         String    @db.VarChar(20)
+  password         String    @db.VarChar(90)
+  resetToken       String?   @db.VarChar(255)
+  resetTokenExpiry DateTime?
+  role             String    @db.VarChar(10)
+  createdAt        DateTime  @default(now())
+  pesanan          pesanan[]
+  warung           warung[]
+}
+
+model warung {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  alamat    String
+  image     String
+  no_telp   String
+  jam_buka  String
+  jam_tutup String
+  createdAt DateTime @default(now())
+  penjualId String
+  menu      menu[]
+  user      user     @relation(fields: [penjualId], references: [id], map: "Warung_penjualId_fkey")
+
+  @@index([penjualId], map: "Warung_penjualId_fkey")
+}
